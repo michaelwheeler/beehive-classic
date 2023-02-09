@@ -1,34 +1,20 @@
 import pyxel
 
 from constants import LANES, SCREEN_HEIGHT, SCREEN_WIDTH
-from entities import Bee, BeeStatus
+from entities import Hive
 
 
 class App:
     def __init__(self):
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Beehive Classic", fps=60)
         pyxel.load("assets.pyxres")
-        self.bees = [Bee(4)]
+        self.hive = Hive()
         pyxel.run(self.update, self.draw)
 
     def update(self):
         if pyxel.btnp(pyxel.KEY_Q):
             pyxel.quit()
-        self.bees = [bee for bee in self.bees if not bee.departed]
-        if not len(self.bees):
-            self.bees.append(Bee(4))
-        if pyxel.btnp(pyxel.KEY_SPACE):
-            for bee in self.bees:
-                if bee.status == BeeStatus.READY:
-                    bee.launch()
-        if pyxel.btnp(pyxel.KEY_RIGHT):
-            for bee in self.bees:
-                if bee.status == BeeStatus.READY:
-                    bee.inc_lane()
-        if pyxel.btnp(pyxel.KEY_LEFT):
-            for bee in self.bees:
-                if bee.status == BeeStatus.READY:
-                    bee.dec_lane()
+        self.hive.update()
 
     def draw_exit(self, x):
         height = 5
@@ -52,8 +38,7 @@ class App:
         )
         for lane in LANES:
             self.draw_exit(lane)
-        for bee in self.bees:
-            bee.draw()
+        self.hive.draw()
 
 
 App()
