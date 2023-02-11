@@ -3,6 +3,7 @@ from typing import List, Optional, Tuple
 
 import pyxel
 
+import input
 from constants import LANES, SCREEN_HEIGHT
 
 
@@ -143,11 +144,11 @@ class Hive:
         self.residents = self.remaining
         if self.has_vacancy and self.ready_bee is None:
             self.residents.append(Bee(self.lane))
-        if pyxel.btnp(pyxel.KEY_SPACE):
+        if input.launch():
             self.launch()
-        if pyxel.btnp(pyxel.KEY_RIGHT):
+        if input.right():
             self.inc_lane()
-        if pyxel.btnp(pyxel.KEY_LEFT):
+        if input.left():
             self.dec_lane()
 
     def draw_ghost_bee(self):
