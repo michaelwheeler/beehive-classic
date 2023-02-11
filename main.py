@@ -1,5 +1,6 @@
 import pyxel
 
+import input
 from constants import LANES, SCREEN_HEIGHT, SCREEN_WIDTH
 from entities import Hive
 
@@ -12,7 +13,7 @@ class App:
         pyxel.run(self.update, self.draw)
 
     def update(self):
-        if pyxel.btnp(pyxel.KEY_Q):
+        if input.quit():
             pyxel.quit()
         self.hive.update()
 
