@@ -1,10 +1,19 @@
-from enum import Enum
-from typing import List, Optional, Tuple
+from enum import Enum, auto
+from typing import List, NamedTuple, Optional, Tuple
 
 import pyxel
 
 import input
 from constants import LANES, SCREEN_HEIGHT
+
+
+class Sprite(NamedTuple):
+    img: int
+    u: int
+    v: int
+    w: int
+    h: int
+    colkey: int
 
 
 class BeeStatus(Enum):
@@ -168,3 +177,54 @@ class Hive:
             bee.draw()
         if self.ready_bee is None:
             self.draw_ghost_bee()
+
+
+class FlowerStatus(Enum):
+    GROWING = auto()
+    BLOOMING = auto()
+    WILTING = auto()
+
+
+class Flower:
+    lane: int = 4
+    position: int = 0
+    growth_duration: int = 20
+    frame_sprouted: int = 0
+    frame_collected: int = 0
+
+    def __init__(self, lane: int, position: int, growth_duration: int = 20) -> None:
+        self.lane = lane
+        self.position = position
+        self.growth_duration = growth_duration
+        self.frame_sprouted = pyxel.frame_count
+
+    @property
+    def frame_blooms(self) -> int:
+        return self.frame_sprouted + self.growth_duration
+
+    @property
+    def status(self) -> FlowerStatus:
+        if self.frame_collected:
+            return FlowerStatus.WILTING
+        return (
+            FlowerStatus.GROWING
+            if pyxel.frame_count < self.frame_blooms
+            else FlowerStatus.BLOOMING
+        )
+
+    @property
+    def x(self) -> int:
+        return (self.lane - 1) * 22 + 6
+
+    @property
+    def y(self) -> int:
+        return self.position
+
+    @property
+    def sprite(self) -> Sprite:
+        u = 32
+        v = 0
+        return Sprite(0, u, v, 16, 16, pyxel.COLOR_LIME)
+
+    def draw(self):
+        pyxel.blt(self.x, self.y, *self.sprite)
