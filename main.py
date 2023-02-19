@@ -1,8 +1,14 @@
+import random
+
 import pyxel
 
 import input
 from constants import LANES, SCREEN_HEIGHT, SCREEN_WIDTH
-from entities import Hive
+from entities import Garden, Hive
+
+
+def get_random_lane():
+    return random.randint(1, 7)
 
 
 class App:
@@ -10,11 +16,13 @@ class App:
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Beehive Classic", fps=60)
         pyxel.load("assets.pyxres")
         self.hive = Hive()
+        self.garden = Garden()
         pyxel.run(self.update, self.draw)
 
     def update(self):
         if input.quit():
             pyxel.quit()
+        self.garden.update()
         self.hive.update()
 
     def draw_exit(self, x):
@@ -39,6 +47,7 @@ class App:
         )
         for lane in LANES:
             self.draw_exit(lane)
+        self.garden.draw()
         self.hive.draw()
 
 

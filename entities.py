@@ -1,3 +1,4 @@
+import random
 from enum import Enum, auto
 from typing import List, NamedTuple, Optional, Tuple
 
@@ -183,6 +184,7 @@ class FlowerStatus(Enum):
     GROWING = auto()
     BLOOMING = auto()
     WILTING = auto()
+    GONE = auto()
 
 
 class Flower:
@@ -204,13 +206,13 @@ class Flower:
 
     @property
     def status(self) -> FlowerStatus:
-        if self.frame_collected:
+        if pyxel.frame_count < self.frame_blooms:
+            return FlowerStatus.GROWING
+        if not self.frame_collected:
+            return FlowerStatus.BLOOMING
+        if pyxel.frame_count < self.frame_collected + 30:
             return FlowerStatus.WILTING
-        return (
-            FlowerStatus.GROWING
-            if pyxel.frame_count < self.frame_blooms
-            else FlowerStatus.BLOOMING
-        )
+        return FlowerStatus.GONE
 
     @property
     def x(self) -> int:
@@ -226,5 +228,44 @@ class Flower:
         v = 0
         return Sprite(0, u, v, 16, 16, pyxel.COLOR_LIME)
 
+    def collect(self):
+        if self.status != FlowerStatus.WILTING:
+            self.frame_collected = pyxel.frame_count
+
     def draw(self):
         pyxel.blt(self.x, self.y, *self.sprite)
+
+
+class Garden:
+    MAX_HEIGHT = 100
+    MIN_HEIGHT = 40
+    MAX_FLOWERS = 3
+    flowers: List[Flower] = []
+
+    def plant_flower(self):
+        if len(self.flowers) < self.MAX_FLOWERS:
+            column = random.randint(1, 7)
+            height = random.randint(self.MIN_HEIGHT, self.MAX_HEIGHT)
+            self.flowers.append(Flower(column, height))
+
+    @property
+    def is_empty(self) -> bool:
+        return bool(self.flowers)
+
+    @property
+    def frames_since_last_planted(self) -> int:
+        if not self.flowers:
+            return pyxel.frame_count
+        frame_last_planted = max([flower.frame_sprouted for flower in self.flowers])
+        return pyxel.frame_count - frame_last_planted
+
+    def update(self):
+        self.flowers = [
+            flower for flower in self.flowers if flower.status != FlowerStatus.GONE
+        ]
+        if self.frames_since_last_planted > 120:
+            self.plant_flower()
+
+    def draw(self):
+        for flower in self.flowers:
+            flower.draw()
