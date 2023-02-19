@@ -1,10 +1,20 @@
-from enum import Enum
-from typing import List, Optional, Tuple
+import random
+from enum import Enum, auto
+from typing import List, NamedTuple, Optional, Tuple
 
 import pyxel
 
 import input
 from constants import LANES, SCREEN_HEIGHT
+
+
+class Sprite(NamedTuple):
+    img: int
+    u: int
+    v: int
+    w: int
+    h: int
+    colkey: int
 
 
 class BeeStatus(Enum):
@@ -168,3 +178,94 @@ class Hive:
             bee.draw()
         if self.ready_bee is None:
             self.draw_ghost_bee()
+
+
+class FlowerStatus(Enum):
+    GROWING = auto()
+    BLOOMING = auto()
+    WILTING = auto()
+    GONE = auto()
+
+
+class Flower:
+    lane: int = 4
+    position: int = 0
+    growth_duration: int = 20
+    frame_sprouted: int = 0
+    frame_collected: int = 0
+
+    def __init__(self, lane: int, position: int, growth_duration: int = 20) -> None:
+        self.lane = lane
+        self.position = position
+        self.growth_duration = growth_duration
+        self.frame_sprouted = pyxel.frame_count
+
+    @property
+    def frame_blooms(self) -> int:
+        return self.frame_sprouted + self.growth_duration
+
+    @property
+    def status(self) -> FlowerStatus:
+        if pyxel.frame_count < self.frame_blooms:
+            return FlowerStatus.GROWING
+        if not self.frame_collected:
+            return FlowerStatus.BLOOMING
+        if pyxel.frame_count < self.frame_collected + 30:
+            return FlowerStatus.WILTING
+        return FlowerStatus.GONE
+
+    @property
+    def x(self) -> int:
+        return (self.lane - 1) * 22 + 6
+
+    @property
+    def y(self) -> int:
+        return self.position
+
+    @property
+    def sprite(self) -> Sprite:
+        u = 32
+        v = 0
+        return Sprite(0, u, v, 16, 16, pyxel.COLOR_LIME)
+
+    def collect(self):
+        if self.status != FlowerStatus.WILTING:
+            self.frame_collected = pyxel.frame_count
+
+    def draw(self):
+        pyxel.blt(self.x, self.y, *self.sprite)
+
+
+class Garden:
+    MAX_HEIGHT = 100
+    MIN_HEIGHT = 40
+    MAX_FLOWERS = 3
+    flowers: List[Flower] = []
+
+    def plant_flower(self):
+        if len(self.flowers) < self.MAX_FLOWERS:
+            column = random.randint(1, 7)
+            height = random.randint(self.MIN_HEIGHT, self.MAX_HEIGHT)
+            self.flowers.append(Flower(column, height))
+
+    @property
+    def is_empty(self) -> bool:
+        return bool(self.flowers)
+
+    @property
+    def frames_since_last_planted(self) -> int:
+        if not self.flowers:
+            return pyxel.frame_count
+        frame_last_planted = max([flower.frame_sprouted for flower in self.flowers])
+        return pyxel.frame_count - frame_last_planted
+
+    def update(self):
+        self.flowers = [
+            flower for flower in self.flowers if flower.status != FlowerStatus.GONE
+        ]
+        if self.frames_since_last_planted > 120:
+            self.plant_flower()
+
+    def draw(self):
+        for flower in self.flowers:
+            flower.draw()
