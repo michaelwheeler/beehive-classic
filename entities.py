@@ -1,6 +1,6 @@
 import random
 from enum import Enum, auto
-from typing import List, NamedTuple, Optional, Tuple
+from typing import List, NamedTuple, Optional
 
 import pyxel
 
@@ -81,7 +81,7 @@ class Bee:
             return screen_top + (2 * frames_since_recall)
 
     @property
-    def sprite(self) -> Tuple[int, int]:
+    def sprite(self) -> Sprite:
         bee_sprites = [
             (0, 0),
             (8, 0),
@@ -89,20 +89,17 @@ class Bee:
             (8, 8),
         ]
         idx = (pyxel.frame_count // 2) % 4
-        return bee_sprites[idx]
+        u, v = bee_sprites[idx]
+        return Sprite(
+            0, u, v, 8, -8 if self.status == BeeStatus.INBOUND else 8, pyxel.COLOR_LIME
+        )
 
     @property
     def departed(self) -> bool:
         return self.y > 128
 
     def draw(self):
-        x = self.x
-        y = self.y
-        img = 0
-        u, v = self.sprite
-        w = 8
-        h = -8 if self.status == BeeStatus.INBOUND else 8
-        pyxel.blt(x, y, img, u, v, w, h)
+        pyxel.blt(self.x, self.y, *self.sprite)
 
 
 class Hive:
