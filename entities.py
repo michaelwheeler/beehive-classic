@@ -1,6 +1,6 @@
 import random
 from enum import Enum, auto
-from typing import List, NamedTuple, Optional
+from typing import List, NamedTuple, Optional, Set
 
 import pyxel
 
@@ -15,6 +15,15 @@ class Sprite(NamedTuple):
     w: int
     h: int
     colkey: int
+
+
+class Location(NamedTuple):
+    x: int
+    y: int
+
+
+def pixelbox(x: int, y: int, w: int, h: int) -> Set[Location]:
+    return set((x1, y1) for x1 in range(x, x + w) for y1 in range(y, y + h))
 
 
 class BeeStatus(Enum):
@@ -37,7 +46,8 @@ class Bee:
         self.frame_launched = pyxel.frame_count
 
     def recall(self) -> None:
-        self.frame_recalled = pyxel.frame_count
+        if self.status != BeeStatus.INBOUND:
+            self.frame_recalled = pyxel.frame_count
 
     def inc_lane(self) -> None:
         if self.lane == 7:
@@ -76,9 +86,14 @@ class Bee:
             else:
                 return y_pos
         if self.status == BeeStatus.INBOUND:
-            screen_top = 0
+            frames_since_launch = self.frame_recalled - self.frame_launched
+            y_pos = screen_bottom - (2 * frames_since_launch)
             frames_since_recall = pyxel.frame_count - self.frame_recalled
-            return screen_top + (2 * frames_since_recall)
+            return y_pos + (2 * frames_since_recall)
+
+    @property
+    def collision_space(self) -> Set[Location]:
+        return pixelbox(self.x + 2, self.y + 1, 4, 6)
 
     @property
     def sprite(self) -> Sprite:
@@ -218,6 +233,10 @@ class Flower:
     @property
     def y(self) -> int:
         return self.position
+
+    @property
+    def collision_space(self) -> Set[Location]:
+        return pixelbox(self.x + 5, self.y + 5, 6, 6)
 
     @property
     def sprite(self) -> Sprite:
