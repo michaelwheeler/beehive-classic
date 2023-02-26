@@ -275,6 +275,12 @@ class Garden:
         frame_last_planted = max([flower.frame_sprouted for flower in self.flowers])
         return pyxel.frame_count - frame_last_planted
 
+    @property
+    def blooming_flowers(self):
+        return [
+            flower for flower in self.flowers if flower.status == FlowerStatus.BLOOMING
+        ]
+
     def update(self):
         self.flowers = [
             flower for flower in self.flowers if flower.status != FlowerStatus.GONE

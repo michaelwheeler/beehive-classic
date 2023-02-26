@@ -25,7 +25,7 @@ class App:
         self.garden.update()
         self.hive.update()
         for bee in self.hive.residents:
-            for flower in self.garden.flowers:
+            for flower in self.garden.blooming_flowers:
                 if bee.collision_space & flower.collision_space:
                     bee.recall()
                     flower.collect()
