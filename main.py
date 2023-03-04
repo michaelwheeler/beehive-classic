@@ -5,6 +5,7 @@ import pyxel
 import input
 from constants import LANES, SCREEN_HEIGHT, SCREEN_WIDTH
 from entities import Garden, Hive
+from resources import Game
 
 
 def get_random_lane():
@@ -15,6 +16,7 @@ class App:
     def __init__(self):
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Beehive Classic", fps=60)
         pyxel.load("assets.pyxres")
+        self.game = Game()
         self.hive = Hive()
         self.garden = Garden()
         pyxel.run(self.update, self.draw)
@@ -27,6 +29,7 @@ class App:
         for bee in self.hive.residents:
             for flower in self.garden.blooming_flowers:
                 if bee.collision_space & flower.collision_space:
+                    self.game.increment_score()
                     bee.recall()
                     flower.collect()
 
@@ -42,7 +45,7 @@ class App:
 
     def draw(self):
         pyxel.cls(pyxel.COLOR_LIME)
-        pyxel.text(55, 41, "Beehive Classic", pyxel.COLOR_GREEN)
+        self.game.draw()
         pyxel.rect(
             x=0,
             y=115,
