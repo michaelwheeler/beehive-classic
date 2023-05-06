@@ -23,7 +23,12 @@ class Location(NamedTuple):
 
 
 def pixelbox(x: int, y: int, w: int, h: int) -> Set[Location]:
-    return set((x1, y1) for x1 in range(x, x + w) for y1 in range(y, y + h))
+    return set(Location(x1, y1) for x1 in range(x, x + w) for y1 in range(y, y + h))
+
+
+def draw_pixels(pixels: Set[Location], color: int = pyxel.COLOR_RED):
+    for pixel in pixels:
+        pyxel.rect(pixel.x, pixel.y, 1, 1, color)
 
 
 class BeeStatus(Enum):
@@ -252,17 +257,78 @@ class Flower:
         pyxel.blt(self.x, self.y, *self.sprite)
 
 
+class SpiderStatus(Enum):
+    CRAWLING = auto()
+    DYING = auto()
+    GONE = auto()
+
+
+class Spider:
+    lane: int = 4
+    frame_created: int = 0
+    frame_destroyed: int = 0
+    speed: int = 1
+
+    def __init__(self, lane: int, speed: int = 1) -> None:
+        self.lane = lane
+        self.frame_created = pyxel.frame_count
+
+    @property
+    def status(self) -> SpiderStatus:
+        if self.frame_destroyed == 0:
+            return SpiderStatus.CRAWLING
+        if pyxel.frame_count - self.frame_destroyed > 20:
+            return SpiderStatus.GONE
+        return SpiderStatus.DYING
+
+    @property
+    def x(self) -> int:
+        return (self.lane - 1) * 22 + 6
+
+    @property
+    def y(self) -> int:
+        max_frame = (
+            pyxel.frame_count
+            if self.status == SpiderStatus.CRAWLING
+            else self.frame_destroyed
+        )
+        start = -16
+        frames_alive = max_frame - self.frame_created
+        return start + frames_alive * self.speed
+
+    @property
+    def collision_space(self) -> Set[Location]:
+        return pixelbox(self.x + 5, self.y + 5, 6, 6)
+
+    @property
+    def sprite(self) -> Sprite:
+        u = 16
+        v = 0
+        return Sprite(0, u, v, 16, 16, pyxel.COLOR_LIME)
+
+    def destroy(self):
+        self.frame_destroyed = pyxel.frame_count
+
+    def draw(self):
+        pyxel.blt(self.x, self.y, *self.sprite)
+
+
 class Garden:
     MAX_HEIGHT = 100
     MIN_HEIGHT = 40
     MAX_FLOWERS = 3
     flowers: List[Flower] = []
+    spiders: List[Spider] = []
 
     def plant_flower(self):
         if len(self.flowers) < self.MAX_FLOWERS:
             column = random.randint(1, 7)
             height = random.randint(self.MIN_HEIGHT, self.MAX_HEIGHT)
             self.flowers.append(Flower(column, height))
+
+    def launch_spider(self):
+        column = random.randint(1, 7)
+        self.spiders.append(Spider(lane=column))
 
     @property
     def is_empty(self) -> bool:
@@ -276,6 +342,13 @@ class Garden:
         return pyxel.frame_count - frame_last_planted
 
     @property
+    def frames_since_last_spider(self) -> int:
+        if not self.spiders:
+            return pyxel.frame_count
+        last_spider_launch = max([spider.frame_created for spider in self.spiders])
+        return pyxel.frame_count - last_spider_launch
+
+    @property
     def blooming_flowers(self):
         return [
             flower for flower in self.flowers if flower.status == FlowerStatus.BLOOMING
@@ -285,9 +358,16 @@ class Garden:
         self.flowers = [
             flower for flower in self.flowers if flower.status != FlowerStatus.GONE
         ]
+        self.spiders = [
+            spider for spider in self.spiders if spider.status != SpiderStatus.GONE
+        ]
         if self.frames_since_last_planted > 120:
             self.plant_flower()
+        if self.frames_since_last_spider > 200:
+            self.launch_spider()
 
     def draw(self):
         for flower in self.flowers:
             flower.draw()
+        for spider in self.spiders:
+            spider.draw()
