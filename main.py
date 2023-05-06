@@ -26,12 +26,17 @@ class App:
             pyxel.quit()
         self.garden.update()
         self.hive.update()
+        spiders = [spider for spider in self.garden.spiders if spider.y < 100]
         for bee in self.hive.residents:
             for flower in self.garden.blooming_flowers:
                 if bee.collision_space & flower.collision_space:
                     self.game.increment_score()
                     bee.recall()
                     flower.collect()
+            for spider in spiders:
+                if bee.collision_space & spider.collision_space:
+                    spider.destroy()
+                    bee.recall()
 
     def draw_exit(self, x):
         height = 5
