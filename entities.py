@@ -277,7 +277,7 @@ class Spider:
     def status(self) -> SpiderStatus:
         if self.frame_destroyed == 0:
             return SpiderStatus.CRAWLING
-        if pyxel.frame_count - self.frame_destroyed > 20:
+        if pyxel.frame_count - self.frame_destroyed > 11:
             return SpiderStatus.GONE
         return SpiderStatus.DYING
 
@@ -304,6 +304,8 @@ class Spider:
     def sprite(self) -> Sprite:
         u = 16
         v = 0
+        if self.status == SpiderStatus.DYING:
+            v = 16 * (pyxel.frame_count - self.frame_destroyed)
         return Sprite(0, u, v, 16, 16, pyxel.COLOR_LIME)
 
     def destroy(self):
