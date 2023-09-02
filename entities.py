@@ -4,6 +4,7 @@ from typing import List, NamedTuple, Optional, Set
 
 import pyxel
 
+import events
 import input
 from constants import LANES, SCREEN_HEIGHT
 
@@ -150,6 +151,11 @@ class Hive:
         if self.ready_bee is not None:
             self.ready_bee.launch()
 
+    def handle_game_over(self):
+        self.residents = []
+        self.lane = 4
+        self.residents.append(Bee(self.lane))
+
     @property
     def remaining(self) -> List[Bee]:
         return [bee for bee in self.residents if not bee.departed]
@@ -261,6 +267,7 @@ class SpiderStatus(Enum):
     CRAWLING = auto()
     DYING = auto()
     GONE = auto()
+    ATTACKING = auto()
 
 
 class Spider:
@@ -276,7 +283,10 @@ class Spider:
     @property
     def status(self) -> SpiderStatus:
         if self.frame_destroyed == 0:
-            return SpiderStatus.CRAWLING
+            start = -16
+            frames_alive = pyxel.frame_count - self.frame_created
+            y_pos = start + frames_alive * self.speed
+            return SpiderStatus.CRAWLING if y_pos < 100 else SpiderStatus.ATTACKING
         if pyxel.frame_count - self.frame_destroyed > 11:
             return SpiderStatus.GONE
         return SpiderStatus.DYING
@@ -356,17 +366,28 @@ class Garden:
             flower for flower in self.flowers if flower.status == FlowerStatus.BLOOMING
         ]
 
+    def handle_game_over(self):
+        self.flowers = []
+        self.spiders = []
+
     def update(self):
         self.flowers = [
             flower for flower in self.flowers if flower.status != FlowerStatus.GONE
         ]
+        attacking_spiders = [
+            spider for spider in self.spiders if spider.status == SpiderStatus.ATTACKING
+        ]
         self.spiders = [
-            spider for spider in self.spiders if spider.status != SpiderStatus.GONE
+            spider
+            for spider in self.spiders
+            if spider.status not in (SpiderStatus.GONE, SpiderStatus.ATTACKING)
         ]
         if self.frames_since_last_planted > 120:
             self.plant_flower()
         if self.frames_since_last_spider > 200:
             self.launch_spider()
+        for spider in attacking_spiders:
+            events.spider_attack(spider)
 
     def draw(self):
         for flower in self.flowers:
