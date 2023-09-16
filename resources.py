@@ -5,6 +5,7 @@ import pyxel
 import events
 import input
 import text
+from constants import SCREEN_WIDTH
 
 
 class GameMode(Enum):
@@ -49,13 +50,25 @@ class Game:
             if input.start():
                 self.start_game()
 
+    def draw_life(self, num):
+        width = 2
+        height = 3
+        color = pyxel.COLOR_GREEN if self.lives < num else pyxel.COLOR_WHITE
+        x = SCREEN_WIDTH - 25 + num * 6
+        y = 4
+        pyxel.rect(x, y, width, height, color)
+        pyxel.pset(x - 1, y + 1, color)
+        pyxel.pset(x + width, y + 1, color)
+
     def draw(self):
         if self.mode == GameMode.TITLE_SCREEN:
             text.centered("Beehive Classic", y=50, color=pyxel.COLOR_WHITE)
             text.centered("Press SPACE to start", y=60, color=pyxel.COLOR_GREEN)
         if self.mode in (GameMode.PLAYING, GameMode.GAME_OVER):
             text.left(f"Score: {self.score}", y=text.TOP)
-            text.right("Beehive Classic", y=text.TOP, color=pyxel.COLOR_GREEN)
+            text.centered("Beehive Classic", y=text.TOP, color=pyxel.COLOR_GREEN)
+            for life in range(1, 4):
+                self.draw_life(life)
         if self.mode == GameMode.GAME_OVER:
             text.centered("GAME OVER")
             text.centered("Press SPACE to play again", y=60, color=pyxel.COLOR_GREEN)
