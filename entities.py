@@ -23,6 +23,11 @@ class Location(NamedTuple):
     y: int
 
 
+class Coordinates(NamedTuple):
+    row: int
+    column: int
+
+
 def pixelbox(x: int, y: int, w: int, h: int) -> Set[Location]:
     return set(Location(x1, y1) for x1 in range(x, x + w) for y1 in range(y, y + h))
 
@@ -211,15 +216,15 @@ class FlowerStatus(Enum):
 
 
 class Flower:
+    row: int = 0
     lane: int = 4
-    position: int = 0
     growth_duration: int = 20
     frame_sprouted: int = 0
     frame_collected: int = 0
 
-    def __init__(self, lane: int, position: int, growth_duration: int = 20) -> None:
+    def __init__(self, lane: int, row: int, growth_duration: int = 20) -> None:
         self.lane = lane
-        self.position = position
+        self.row = row
         self.growth_duration = growth_duration
         self.frame_sprouted = pyxel.frame_count
 
@@ -238,12 +243,16 @@ class Flower:
         return FlowerStatus.GONE
 
     @property
+    def coordinates(self) -> Coordinates:
+        return Coordinates(self.row, self.lane)
+
+    @property
     def x(self) -> int:
         return (self.lane - 1) * 22 + 6
 
     @property
     def y(self) -> int:
-        return self.position
+        return self.row * 20
 
     @property
     def collision_space(self) -> Set[Location]:
@@ -326,8 +335,8 @@ class Spider:
 
 
 class Garden:
-    MAX_HEIGHT = 100
-    MIN_HEIGHT = 40
+    MAX_ROW = 4
+    MIN_ROW = 1
     MAX_FLOWERS = 3
     flowers: List[Flower] = []
     spiders: List[Spider] = []
@@ -335,8 +344,9 @@ class Garden:
     def plant_flower(self):
         if len(self.flowers) < self.MAX_FLOWERS:
             column = random.randint(1, 7)
-            height = random.randint(self.MIN_HEIGHT, self.MAX_HEIGHT)
-            self.flowers.append(Flower(column, height))
+            row = random.randint(self.MIN_ROW, self.MAX_ROW)
+            if (row, column) not in [flower.coordinates for flower in self.flowers]:
+                self.flowers.append(Flower(column, row))
 
     def launch_spider(self):
         column = random.randint(1, 7)
