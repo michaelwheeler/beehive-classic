@@ -218,13 +218,15 @@ class FlowerStatus(Enum):
 class Flower:
     row: int = 0
     lane: int = 4
-    growth_duration: int = 20
+    flip: bool = False
+    growth_duration: int = 24
     frame_sprouted: int = 0
     frame_collected: int = 0
 
     def __init__(self, lane: int, row: int, growth_duration: int = 20) -> None:
         self.lane = lane
         self.row = row
+        self.flip = bool(pyxel.rndi(0, 1))
         self.growth_duration = growth_duration
         self.frame_sprouted = pyxel.frame_count
 
@@ -256,13 +258,21 @@ class Flower:
 
     @property
     def collision_space(self) -> Set[Location]:
-        return pixelbox(self.x + 5, self.y + 5, 6, 6)
+        return pixelbox(self.x + 5, self.y + 1, 6, 5)
 
     @property
     def sprite(self) -> Sprite:
-        u = 32
+        if self.status is FlowerStatus.GROWING:
+            frames_since_sprout = pyxel.frame_count - self.frame_sprouted
+            u = 16 * int(frames_since_sprout / 4)
+        elif self.status is FlowerStatus.WILTING:
+            frames_since_collection = pyxel.frame_count - self.frame_collected
+            u = 80 - 16 * int(frames_since_collection / 4)
+        else:
+            u = 80
         v = 0
-        return Sprite(0, u, v, 16, 16, pyxel.COLOR_LIME)
+        w = -16 if self.flip else 16
+        return Sprite(1, u, v, w, 16, pyxel.COLOR_LIME)
 
     def collect(self):
         if self.status != FlowerStatus.WILTING:
