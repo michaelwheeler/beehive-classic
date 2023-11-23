@@ -2,4 +2,4 @@
 max-line-length = 88
 docstring-convention=google
 extend-ignore = E203
-exclude = env/*, venv/*, .nox
+exclude = env/*, .venv/*, .nox
