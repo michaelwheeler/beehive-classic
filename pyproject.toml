@@ -1,9 +1,9 @@
 [tool.black]
-extend-exclude = "/env/|/venv/|/migrations/"
+extend-exclude = "/env/|/.venv/|/migrations/"
 
 [tool.isort]
 profile = "black"
 line_length = 88
 known_pyxel = 'pyxel'
-skip_glob = 'venv/*,env/*'
+skip_glob = '.venv/*,env/*'
 sections = 'FUTURE,STDLIB,PYXEL,THIRDPARTY,FIRSTPARTY,LOCALFOLDER'
