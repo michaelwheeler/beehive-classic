@@ -21,7 +21,7 @@ class Game:
 
     @property
     def is_active(self):
-        return self.mode == GameMode.PLAYING
+        return self.mode is GameMode.PLAYING
 
     def start_game(self):
         self.score = 0
