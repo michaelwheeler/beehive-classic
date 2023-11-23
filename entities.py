@@ -57,7 +57,7 @@ class Bee:
         self.frame_launched = pyxel.frame_count
 
     def recall(self) -> None:
-        if self.status != BeeStatus.INBOUND:
+        if self.status is not BeeStatus.INBOUND:
             self.frame_recalled = pyxel.frame_count
 
     def inc_lane(self) -> None:
@@ -87,20 +87,20 @@ class Bee:
     @property
     def y(self) -> int:
         screen_bottom = SCREEN_HEIGHT - 8
-        if self.status == BeeStatus.READY:
-            return screen_bottom
-        if self.status == BeeStatus.OUTBOUND:
-            frames_since_launch = pyxel.frame_count - self.frame_launched
-            y_pos = screen_bottom - (2 * frames_since_launch)
-            if y_pos <= 0:
-                self.recall()
-            else:
+        match self.status:
+            case BeeStatus.READY:
+                return screen_bottom
+            case BeeStatus.OUTBOUND:
+                frames_since_launch = pyxel.frame_count - self.frame_launched
+                y_pos = screen_bottom - (2 * frames_since_launch)
+                if y_pos <= 0:
+                    self.recall()
                 return y_pos
-        if self.status == BeeStatus.INBOUND:
-            frames_since_launch = self.frame_recalled - self.frame_launched
-            y_pos = screen_bottom - (2 * frames_since_launch)
-            frames_since_recall = pyxel.frame_count - self.frame_recalled
-            return y_pos + (2 * frames_since_recall)
+            case BeeStatus.INBOUND:
+                frames_since_launch = self.frame_recalled - self.frame_launched
+                y_pos = screen_bottom - (2 * frames_since_launch)
+                frames_since_recall = pyxel.frame_count - self.frame_recalled
+                return y_pos + (2 * frames_since_recall)
 
     @property
     def collision_space(self) -> Set[Location]:
@@ -117,7 +117,7 @@ class Bee:
         idx = (pyxel.frame_count // 2) % 4
         u, v = bee_sprites[idx]
         return Sprite(
-            0, u, v, 8, -8 if self.status == BeeStatus.INBOUND else 8, pyxel.COLOR_LIME
+            0, u, v, 8, -8 if self.status is BeeStatus.INBOUND else 8, pyxel.COLOR_LIME
         )
 
     @property
@@ -171,7 +171,7 @@ class Hive:
 
     @property
     def ready_bee(self) -> Optional[Bee]:
-        ready_bees = [bee for bee in self.residents if bee.status == BeeStatus.READY]
+        ready_bees = [bee for bee in self.residents if bee.status is BeeStatus.READY]
         return ready_bees[0] if ready_bees else None
 
     @property
@@ -262,20 +262,21 @@ class Flower:
 
     @property
     def sprite(self) -> Sprite:
-        if self.status is FlowerStatus.GROWING:
-            frames_since_sprout = pyxel.frame_count - self.frame_sprouted
-            u = 16 * int(frames_since_sprout / 4)
-        elif self.status is FlowerStatus.WILTING:
-            frames_since_collection = pyxel.frame_count - self.frame_collected
-            u = 80 - 16 * int(frames_since_collection / 4)
-        else:
-            u = 80
+        match self.status:
+            case FlowerStatus.GROWING:
+                frames_since_sprout = pyxel.frame_count - self.frame_sprouted
+                u = 16 * int(frames_since_sprout / 4)
+            case FlowerStatus.WILTING:
+                frames_since_collection = pyxel.frame_count - self.frame_collected
+                u = 80 - 16 * int(frames_since_collection / 4)
+            case _:
+                u = 80
         v = 0
         w = -16 if self.flip else 16
         return Sprite(1, u, v, w, 16, pyxel.COLOR_LIME)
 
     def collect(self):
-        if self.status != FlowerStatus.WILTING:
+        if self.status is not FlowerStatus.WILTING:
             self.frame_collected = pyxel.frame_count
 
     def draw(self):
@@ -318,7 +319,7 @@ class Spider:
     def y(self) -> int:
         max_frame = (
             pyxel.frame_count
-            if self.status == SpiderStatus.CRAWLING
+            if self.status is SpiderStatus.CRAWLING
             else self.frame_destroyed
         )
         start = -16
@@ -333,7 +334,7 @@ class Spider:
     def sprite(self) -> Sprite:
         u = 16
         v = 0
-        if self.status == SpiderStatus.DYING:
+        if self.status is SpiderStatus.DYING:
             v = 16 * (pyxel.frame_count - self.frame_destroyed)
         return Sprite(0, u, v, 16, 16, pyxel.COLOR_LIME)
 
