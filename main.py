@@ -59,6 +59,7 @@ class App:
         pyxel.cls(pyxel.COLOR_LIME)
         self.game.draw()
         if self.game.is_active:
+            pyxel.bltm(0, 16, 0, 0, 0, 160, 100, pyxel.COLOR_LIME)
             pyxel.rect(
                 x=0,
                 y=115,
