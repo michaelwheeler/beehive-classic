@@ -324,7 +324,7 @@ class Spider:
         )
         start = -16
         frames_alive = max_frame - self.frame_created
-        return start + frames_alive * self.speed
+        return int(start + frames_alive * self.speed)
 
     @property
     def collision_space(self) -> Set[Location]:
@@ -332,11 +332,13 @@ class Spider:
 
     @property
     def sprite(self) -> Sprite:
-        u = 16
+        u = 32
         v = 0
+        flip = 1 if int(self.y / 8) % 2 else -1
         if self.status is SpiderStatus.DYING:
+            u = 16
             v = 16 * (pyxel.frame_count - self.frame_destroyed)
-        return Sprite(0, u, v, 16, 16, pyxel.COLOR_LIME)
+        return Sprite(0, u, v, 16 * flip, 16, pyxel.COLOR_LIME)
 
     def destroy(self):
         self.frame_destroyed = pyxel.frame_count
