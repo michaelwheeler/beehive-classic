@@ -4,6 +4,7 @@ import pyxel
 
 import events
 import input
+import sounds
 from constants import LANES, SCREEN_HEIGHT, SCREEN_WIDTH
 from entities import Garden, Hive
 from resources import Game
@@ -18,6 +19,7 @@ class App:
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Beehive Classic", fps=60)
         pyxel.load("assets.pyxres")
         pyxel.image(1).load(0, 0, "flower.png")
+        sounds.init()
         self.game = Game()
         self.hive = Hive()
         self.garden = Garden()
