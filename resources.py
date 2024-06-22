@@ -4,6 +4,7 @@ import pyxel
 
 import events
 import input
+import sounds
 import text
 from constants import SCREEN_WIDTH
 
@@ -44,6 +45,7 @@ class Game:
 
     def handle_spider_attack(self, spider):
         self.reduce_lives()
+        sounds.play_spider_attack()
 
     def update(self):
         if self.mode in (GameMode.TITLE_SCREEN, GameMode.GAME_OVER):

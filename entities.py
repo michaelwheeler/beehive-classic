@@ -6,6 +6,7 @@ import pyxel
 
 import events
 import input
+import sounds
 from constants import LANES, SCREEN_HEIGHT
 
 
@@ -54,6 +55,7 @@ class Bee:
         self.frame_created = pyxel.frame_count
 
     def launch(self) -> None:
+        sounds.play_bee_launch()
         self.frame_launched = pyxel.frame_count
 
     def recall(self) -> None:
@@ -229,6 +231,7 @@ class Flower:
         self.flip = bool(pyxel.rndi(0, 1))
         self.growth_duration = growth_duration
         self.frame_sprouted = pyxel.frame_count
+        sounds.play_flower_sprout()
 
     @property
     def frame_blooms(self) -> int:
@@ -278,6 +281,7 @@ class Flower:
     def collect(self):
         if self.status is not FlowerStatus.WILTING:
             self.frame_collected = pyxel.frame_count
+            sounds.play_flower_wilt()
 
     def draw(self):
         pyxel.blt(self.x, self.y, *self.sprite)
@@ -342,6 +346,7 @@ class Spider:
 
     def destroy(self):
         self.frame_destroyed = pyxel.frame_count
+        sounds.play_spider_death()
 
     def draw(self):
         pyxel.blt(self.x, self.y, *self.sprite)
