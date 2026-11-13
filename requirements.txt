@@ -2,4 +2,4 @@ black==26.10.1
 flake8==7.5.0
 isort==9.0.2
 nox==2026.10.20
-pyxel==2.9.9
+pyxel==3.0.0
